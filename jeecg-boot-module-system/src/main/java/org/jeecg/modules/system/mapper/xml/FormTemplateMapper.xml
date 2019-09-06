@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jeecg.modules.system.mapper.FormTemplateMapper">
+
+    <select id="getTemplateByBusId" resultType="org.jeecg.modules.system.entity.FormTemplate">
+        select * from form_template  where form_state=1  and relation_business_id=#{id}
+    </select>
+    <select id="getFileInfoByTmpId" resultType="java.util.Map">
+        select * from form_file  where form_id=#{formId}  and upload_type=2
+    </select>
+    <select id="getFileInfoByAppId" resultType="java.util.Map">
+       SELECT * FROM form_apply_file WHERE file_id=#{id} AND apply_id=#{appId}
+    </select>
+
+</mapper>

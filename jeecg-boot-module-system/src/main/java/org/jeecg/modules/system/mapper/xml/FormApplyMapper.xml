@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jeecg.modules.system.mapper.FormApplyMapper">
+    <delete id="deleteApplyContent" >
+        DELETE FROM   form_content  where apply_id=#{id}
+    </delete>
+
+    <delete id="deleteApplyFile">
+        DELETE FROM form_apply_file  where apply_id=#{id}
+    </delete>
+
+    <select id="page2" resultType="org.jeecg.modules.system.entity.FormApply">
+        select * FROM form_apply WHERE
+         valid=1 AND create_person=#{userId}
+        <if test="name!=null and name!=''">
+            AND name LIKE concat('%',#{name},'%')
+        </if>
+        <if test="dpetId!=null and dpetId!=''">
+            AND business_id=#{dpetId}
+        </if>
+         order by id desc
+    </select>
+
+    <select id="getComponentByAppId" resultType="String">
+        select concat('column',c.id) as id FROM form_component c LEFT JOIN form_apply a ON c.form_id=a.form_id WHERE a.id=#{id}
+    </select>
+    <select id="getComponentIdByAppId" resultType="String">
+        select c.id FROM form_component c LEFT JOIN form_apply a ON c.form_id=a.form_id WHERE a.id=#{id}
+    </select>
+    <select id="getValueBy" resultType="String">
+        SELECT `value` FROM form_content WHERE apply_id=#{id} AND form_component_id=#{componentId}
+    </select>
+    <select id="getFormApplyList" resultType="java.util.Map" >
+        select a.id as id, a.form_id as formId , a.form_type as formType , a.name as name, a.person_name as personName,
+          a.status as status,DATE_FORMAT(a.create_time,'%Y-%m-%d %H:%i:%s') AS createTime,a.opinion as opinion,
+          b.business_name as businessName,bt.name as businessType
+        FROM form_apply a
+        LEFT JOIN business b ON b.id=a.business_id
+        LEFT JOIN business_type bt ON bt.id = b.business_type
+        WHERE  a.valid = 1
+        <if test="personName!=null and personName!=''">
+            AND a.person_name LIKE concat('%',#{personName},'%')
+        </if>
+        <if test="status!=null and status!=''">
+            AND a.status = #{status}
+        </if>
+        <if test="businessName!=null and businessName!=''">
+            AND b.business_name LIKE concat('%',#{businessName},'%')
+        </if>
+        <if test="businessType!=null and businessType!=''">
+            AND bt.id = #{businessType}
+        </if>
+        <if test="startTime!=null ">
+            and a.create_time &gt;=  #{startTime}
+        </if>
+        <if test="endTime!=null ">
+            and a.create_time &lt;=  #{endTime}
+        </if>
+        <if test="userId!=null and userId!=''">
+            AND b.id in (select sb.business_id from sys_user_business sb where sb.user_id=#{userId})
+        </if>
+
+        ORDER BY a.create_time DESC
+    </select>
+    <select id="getApplyInfoByName" resultType="org.jeecg.modules.system.entity.FormApply">
+        select a.* from form_apply a left join business  b  on a.business_id=b.id
+        where a.name=#{name}  and b.id=#{busId}
+        and a.create_time  BETWEEN  b.start_time    and      b.end_time
+     </select>
+
+
+
+    <select id="formApplyReviewList" resultType="java.util.Map" >
+        select a.id as id, a.form_id as formId , a.form_type as formType , a.name as name, a.person_name as personName,
+        a.status as status,DATE_FORMAT(a.create_time,'%Y-%m-%d %H:%i:%s') AS createTime,a.opinion as opinion,
+        b.business_name as businessName,bt.name as businessType
+        FROM form_apply a
+        LEFT JOIN business b ON b.id=a.business_id
+        LEFT JOIN business_type bt ON bt.id = b.business_type
+        LEFT JOIN form_apply_expert_group aeg ON aeg.form_apply_id = a.id
+        LEFT JOIN expert_user_group eg ON eg.group_id = aeg.expert_group_id
+        WHERE  a.valid = 1  AND a.status in (8,9,10)
+        <if test="personName!=null and personName!=''">
+            AND a.person_name LIKE concat('%',#{personName},'%')
+        </if>
+        <if test="businessName!=null and businessName!=''">
+            AND b.business_name LIKE concat('%',#{businessName},'%')
+        </if>
+        <if test="businessType!=null and businessType!=''">
+            AND bt.id = #{businessType}
+        </if>
+        <if test="startTime!=null ">
+            and a.create_time &gt;=  #{startTime}
+        </if>
+        <if test="endTime!=null ">
+            and a.create_time &lt;=  #{endTime}
+        </if>
+        AND eg.user_id = #{userId}
+
+        ORDER BY a.create_time DESC
+    </select>
+
+    <select id="getExamineApplyInfo" resultType="map">
+        SELECT c.label AS title,c.type,f.`value` AS content FROM form_content f
+        LEFT JOIN form_component c ON f.form_component_id=c.id
+        WHERE f.apply_id=#{id}
+    </select>
+
+    <select id="getExamineApplyUpload" resultType="map">
+        SELECT file_name AS title,url,type FROM form_apply_file WHERE apply_id=#{id}
+    </select>
+
+    <delete id="deleteByAppId">
+        DELETE FROM form_content WHERE apply_id=#{appId}
+    </delete>
+
+
+    <select id="getFormApplyList1" resultType="java.util.Map" >
+        select a.id as id,  b.business_name as businessName,bt.name as businessType, a.name as name, a.person_name as personName,
+        (case b.business_level when 1 then '国家级' when 2 then '省级' when 3 then '市级' else '区/县级' end)  as businessLevel,
+          d.depart_name,
+        (case a.status when 1 then '待上传' when 2 then '待提交' when 3 then '待初审' when 4 then '初审中' when 5 then '初审通过' when 6 then '初审退回'
+        when 7 then '初审拒绝' when 8 then '待复审' when 9 then '复审通过'  when 9 then '复审通过' when 10 then '复审拒绝' else '已录入'     end   ) as applyStatus ,
+        DATE_FORMAT(a.create_time,'%Y-%m-%d %H:%i:%s') AS createTime,a.opinion as opinion
+        FROM form_apply a
+        LEFT JOIN business b ON b.id=a.business_id
+        LEFT JOIN business_type bt ON bt.id = b.business_type
+        left join sys_depart d on d.id=b.dpet_id
+        WHERE  a.valid = 1
+        <if test="personName!=null and personName!=''">
+            AND a.person_name LIKE concat('%',#{personName},'%')
+        </if>
+        <if test="status!=null and status!=''">
+            AND a.status = #{status}
+        </if>
+        <if test="businessName!=null and businessName!=''">
+            AND a.name LIKE concat('%',#{businessName},'%')
+        </if>
+        <if test="businessType!=null and businessType!=''">
+            AND bt.id = #{businessType}
+        </if>
+        <if test="business!=null and business!=''">
+            AND b.id = #{business}
+        </if>
+        <if test="startTime!=null ">
+            and a.create_time &gt;=  #{startTime}
+        </if>
+        <if test="endTime!=null ">
+            and a.create_time &lt;=  #{endTime}
+        </if>
+
+        ORDER BY a.create_time DESC
+    </select>
+
+    <select id="getYearReportInfo" resultType="java.util.Map">
+        SELECT a.id,u.id AS userId,c.company_name,c.social_credit_code,c.incorporation_place,c.company_detail_address,c.legal_person,c.legal_telephone,c.legal_phone,
+               c.user_name,c.user_telephone,u.phone,c.company_email,(CASE c.zz_science WHEN 0 THEN '否' when 1 THEN '是' end) AS scienceCompany,c.record_number
+        FROM form_apply a
+                 LEFT JOIN sys_user u ON a.create_person=u.id
+                 LEFT JOIN sys_user_company_data c ON u.id=c.user_id
+        WHERE c.id IS NOT NULL AND a.valid=1 AND a.business_id=35
+        <if test="personName!=null and personName!=''">
+            AND a.person_name LIKE concat('%',#{personName},'%')
+        </if>
+        <if test="status!=null and status!=''">
+            AND a.status = #{status}
+        </if>
+        <if test="startTime!=null ">
+            and a.create_time &gt;=  #{startTime}
+        </if>
+        <if test="endTime!=null ">
+            and a.create_time &lt;=  #{endTime}
+        </if>
+    </select>
+
+    <select id="getFormApplyList2" resultType="java.util.Map" >
+        select a.id as id, a.form_id as formId , a.form_type as formType , a.name as name, a.person_name as personName,
+        a.status as status,DATE_FORMAT(a.create_time,'%Y-%m-%d %H:%i:%s') AS createTime,a.opinion as opinion,
+        b.business_name as businessName,bt.name as businessType
+        FROM form_apply a
+        LEFT JOIN business b ON b.id=a.business_id
+        LEFT JOIN business_type bt ON bt.id = b.business_type
+        left join form_content f on f.apply_id=a.id
+        left join  form_component c on f.form_component_id=c.id
+        WHERE  a.valid = 1
+        <if test="personName!=null and personName!=''">
+            AND a.person_name LIKE concat('%',#{personName},'%')
+        </if>
+        <if test="status!=null and status!=''">
+            AND a.status = #{status}
+        </if>
+        <if test="businessName!=null and businessName!=''">
+            AND a.name LIKE concat('%',#{businessName},'%')
+        </if>
+        <if test="businessType!=null and businessType!=''">
+            AND bt.id = #{businessType}
+        </if>
+        <if test="business!=null and business!=''">
+            AND b.id = #{business}
+        </if>
+        <if test="startTime!=null ">
+            and a.create_time &gt;=  #{startTime}
+        </if>
+        <if test="endTime!=null ">
+            and a.create_time &lt;=  #{endTime}
+        </if>
+        <if test="list!=null and list.size > 0">
+            and
+            <foreach collection="list" item="item" index="index" open="(" separator="," close=")">
+                 f.value ${item.rule} #{item.val}  and c.label = #{item.field}
+            </foreach>
+        </if>
+
+        ORDER BY a.create_time DESC
+    </select>
+    <select id="getContentInfoByParams" resultType="java.util.Map">
+        select * from form_content f  left join  form_component c on f.form_component_id=c.id where f.apply_id=#{applyId}
+         and f.value ${byValue} #{val}  and c.label = #{field}
+    </select>
+    <select id="getContentByApplyId" resultType="java.util.Map">
+        select c.label ,f.value from
+        form_content f left join  form_component c on f.form_component_id=c.id WHERE f.apply_id=#{applyId}
+    </select>
+    <select id="getAllContentLabel" resultType="java.util.Map">
+        select c.label ,c.type from   form_content f left join  form_component c on f.form_component_id=c.id
+            left join form_apply a on a.id=f.apply_id  where a.business_id=#{busId}  GROUP BY c.label ORDER BY c.index_number
+    </select>
+    <select id="getBusinessIdByApply" resultType="map">
+        SELECT id,business_name as name FROM business WHERE del_flag=0 AND give_status=2
+    </select>
+
+    <select id="getApplyCount" resultType="integer">
+        SELECT count(1) FROM form_apply fa
+        LEFT JOIN business bs ON fa.business_id=bs.id
+        WHERE fa.valid=1
+        <if test="year!=null and year!=''">
+            AND year(fa.create_time)=#{year}
+        </if>
+        <if test="status!=null and status!='' and status!=0">
+            AND fa.`status`=#{status}
+        </if>
+        AND fa.business_id=#{bsId}
+    </select>
+    <select id="yearList" resultType="string">
+        SELECT DISTINCT YEAR(create_time) FROM form_apply
+    </select>
+    <select id="getApplyCountYear" resultType="integer">
+        SELECT count(1) FROM form_apply fa
+        LEFT JOIN business bs ON fa.business_id=bs.id
+        WHERE fa.valid=1
+            AND year(fa.create_time)=#{year}
+        <if test="status!=null and status!='' and status!=0">
+                AND fa.`status`=#{status}
+        </if>
+    <if test="level!=null and level!=''">
+        AND bs.business_level=#{level}
+    </if>
+    </select>
+
+    <select id="getApplyInfoByForm" resultType="org.jeecg.modules.system.entity.FormApply">
+        select * from form_apply where valid=1 and create_person=#{userId} and form_id=#{formId}
+    </select>
+</mapper>

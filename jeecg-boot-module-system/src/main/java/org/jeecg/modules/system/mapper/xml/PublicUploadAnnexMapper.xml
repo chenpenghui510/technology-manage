@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jeecg.modules.system.mapper.PublicUploadAnnexMapper">
+    <select id="searchByQuery" resultType="org.jeecg.modules.system.entity.PublicUploadAnnex">
+      SELECT * FROM public_upload_annex WHERE 1=1
+      <if test="keyId!=null and keyId!=''">
+          AND key_id=#{keyId}
+      </if>
+      <if test="annexType!=null">
+          AND annex_type=#{annexType}
+      </if>
+      <if test="required!=null">
+          AND required=#{required}
+      </if>
+    </select>
+</mapper>

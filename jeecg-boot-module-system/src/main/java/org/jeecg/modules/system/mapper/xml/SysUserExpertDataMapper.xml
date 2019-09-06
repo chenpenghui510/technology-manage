@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jeecg.modules.system.mapper.SysUserExpertDataMapper">
+    <select id="getExpertFiles" resultType="map">
+        SELECT file_name,file_path FROM public_upload_annex  WHERE annex_type=2 AND key_id=#{id}
+    </select>
+
+    <select id="doCheckRegion" resultType="map">
+        SELECT level FROM region WHERE id=#{id}
+    </select>
+
+    <select id="getRegionById" resultType="java.lang.String">
+        SELECT mername FROM region WHERE id=#{regionId}
+    </select>
+</mapper>

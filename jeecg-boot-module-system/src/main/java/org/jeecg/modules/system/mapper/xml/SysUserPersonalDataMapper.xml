@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jeecg.modules.system.mapper.SysUserPersonalDataMapper">
+    <select id="personalData" resultType="map">
+        SELECT
+        su.id as userId
+        ,su.realname as expertName,
+        su.email as testEmail,
+        su.phone,
+        pd.user_id as userId,
+        pd.personal_sex as expertSex,
+        pd.identity_card_number as cardNumber,
+        pd.identity_card_img as img,
+        pd.tel,
+        pd.post as administrativePost,
+        pd.professional_titles as professionalTitles
+        FROM sys_user su
+         LEFT JOIN sys_user_personal_data pd ON su.id=pd.user_id
+          WHERE su.id=#{id}
+
+    </select>
+
+</mapper>

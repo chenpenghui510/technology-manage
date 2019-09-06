@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jeecg.modules.system.mapper.SysUserCompanyDataMapper">
+
+    <select id="getCompanyManagerInfo" resultType="java.util.Map">
+        select c.*,s.username,s.phone,s.email from   sys_user  s  left join sys_user_company_data c on c.user_id=s.id
+        where s.id=#{userId}
+    </select>
+    <select id="getUserList" resultType="org.jeecg.modules.system.entity.SysUserCompanyData">
+        select * from  sys_user_company_data  where user_card=#{cardNumber}  and user_card !=#{oldCard}
+    </select>
+</mapper>

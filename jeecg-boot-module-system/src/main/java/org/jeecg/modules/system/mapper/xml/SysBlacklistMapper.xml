@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jeecg.modules.system.mapper.SysBlacklistMapper">
+
+    <select id="inBlackTime" resultType="integer">
+        select count(1) FROM sys_blacklist WHERE start_time &lt;=#{time} AND end_time &gt;=#{time} AND user_id=#{userId}
+    </select>
+</mapper>

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jeecg.modules.system.mapper.BusinessMapper">
+
+
+
+    <select id="getPageList"  resultType="java.util.Map">
+        SELECT b.id as id,b.business_name as businessName,b.business_level as businessLevel,b.business_type as businessType,b.del_flag AS delFlag,
+          b.dpet_id as dpetId,b.give_status as giveStatus,b.start_time as startTime,b.end_time as endTime,
+          b.status,b.business_kind as businessKind,u.realname,d.depart_name,DATE_FORMAT(b.create_time,'%Y-%m-%d %H:%i:%s') AS createTime
+        FROM business b
+        left join business_type t on b.business_type=t.id
+        left join sys_user_business ub on ub.business_id = b.id
+        left join sys_user  u on ub.user_id=u.id
+        left join  sys_depart d on d.id =b.dpet_id
+        WHERE t.status=1
+        <if test="delFlag!=''">
+            AND b.del_flag=#{delFlag}
+        </if>
+        <if test="delFlag==''">
+            AND b.del_flag=0
+        </if>
+        <if test="status!=null and status!=''">
+            AND b.status = #{status}
+        </if>
+        <if test="businessName!=null and businessName!=''">
+            AND b.business_name LIKE concat('%',#{businessName},'%')
+        </if>
+        <if test="businessLevel!=null and businessLevel!=''">
+            AND b.business_level = #{businessLevel}
+        </if>
+        <if test="department!=null and department!=''">
+            AND d.depart_name LIKE concat('%',#{department},'%')
+        </if>
+        <if test="businessType!=null and businessType!=''">
+            AND b.business_type=#{businessType}
+        </if>
+        Group by b.id
+        order by b.create_time desc
+
+    </select>
+
+    <select id="getPageList2" resultType="org.jeecg.modules.system.entity.Business">
+        SELECT b.id as id,b.business_name as business_name,b.business_level as business_level,
+        b.dpet_id as dpet_id,b.give_status as give_status,b.start_time as start_time,b.end_time as end_time,
+        b.status as status
+        FROM business b
+        <if test="byUserId!=null and byUserId!=''">
+            left join sys_user_business ub on ub.business_id = b.id
+        </if>
+        WHERE b.del_flag=0
+        <if test="businessName!=null and businessName!=''">
+            AND b.business_name LIKE concat('%',#{businessName},'%')
+        </if>
+        <if test="dpetId!=null and dpetId!=''">
+            AND b.dpet_id = #{dpetId}
+        </if>
+        <if test="status!=null and status!=''">
+            AND b.give_status = #{status}
+        </if>
+        <if test="byUserId!=null and byUserId!=''">
+            and ub.user_id = #{byUserId}
+        </if>
+        order by b.create_time desc
+
+    </select>
+    <select id="businessListByType" resultType="org.jeecg.modules.system.entity.Business">
+      select * from     business  where business_type=#{typeId}  AND del_flag=0
+    </select>
+
+    <select id="searchBusinessDetailsById" resultType="map">
+        SELECT business_name AS businessName,business_type.`name` AS businessType,business.business_level AS businessLevel,
+               business.give_status AS giveStatus,DATE_FORMAT(business.start_time,'%Y-%m-%d %H:%i:%s') AS startTime, DATE_FORMAT(business.end_time,'%Y-%m-%d %H:%i:%s') AS endTime,
+               business.status,business.business_kind AS businessKind
+        FROM business LEFT JOIN business_type ON business.business_type=business_type.id
+        WHERE business.id=#{id}
+    </select>
+
+</mapper>

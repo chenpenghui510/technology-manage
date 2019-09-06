@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jeecg.modules.message.mapper.SysMessageMapper">
+
+    <select id="getSysMessageInfo" resultType="org.jeecg.modules.message.entity.SysMessage">
+        select * from  sys_sms  where announcement_id = #{id}
+    </select>
+    <select id="falseMessageCount" parameterType="map" resultType="Integer">
+        select count(1) from sys_sms WHERE announcement_id=#{code} AND es_send_status in (-1,2)
+    </select>
+
+    <select id="sixFalseMessageCount" parameterType="map" resultType="Integer">
+        select count(1) from sys_sms WHERE announcement_id=#{code} AND es_send_status =2 and es_send_num>5
+    </select>
+
+    <select id="findSendMessageByBid" resultType="java.util.Map">
+        SELECT ss.es_title as title, ss.es_type as type, ss.es_receiver as userSend,su.realname as username,
+                ss.es_content as content, ss.es_send_status as sendStatus, sa.del_flag as delStatus,
+                DATE_FORMAT(ss.es_send_time,'%Y-%m-%d %H:%i:%s') AS stime
+        FROM sys_sms ss
+        LEFT JOIN sys_announcement sa ON sa.id = ss.announcement_id
+        LEFT JOIN business_announcement ba ON ba.sys_announcement_id = sa.id
+        LEFT JOIN sys_user su ON su.id=ss.user_id
+        WHERE ba.business_id=#{businessId}
+        group by ss.id
+        order by ss.create_time DESC
+    </select>
+</mapper>

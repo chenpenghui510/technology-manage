@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jeecg.modules.system.mapper.SysInformationMapper">
+
+    <select id="patentListByType" resultType="org.jeecg.modules.system.entity.SysInformation">
+        select * from sys_information where status=1 and type=#{type}
+        <if test="text!=null and text!=''">
+         and (name like CONCAT('%',#{text},'%') or   source like CONCAT('%',#{text},'%')  or  content
+            like CONCAT('%',#{text},'%'))
+        </if>
+        order by id desc
+    </select>
+    <select id="getPatentListByType" resultType="map">
+        select id, name, url , img,DATE_FORMAT(create_time,'%Y-%m-%d') AS createTime from  sys_information  where type = #{type} and status = 1
+        order  by  id desc limit
+        <if test="type==3">8</if>
+        <if test="type!=3">10</if>
+    </select>
+    <select id="getPatentConpanyList" resultType="map">
+        select id, name, url , img ,DATE_FORMAT(create_time,'%Y-%m-%d') AS createTime from  sys_information  where type = #{type} and status = 1
+        order  by  id desc limit  4
+    </select>
+    <select id="getPatentRotaryListByType" resultType="map">
+        select id ,name, url, img ,DATE_FORMAT(create_time,'%Y-%m-%d') AS createTime from  sys_information  where type = #{type} and status = 1
+        order  by  id desc limit  5
+    </select>
+
+    <select id="queryPageByTypeList"   resultType="org.jeecg.modules.system.entity.SysInformation">
+        select * from sys_information where status=1 and type=#{type}
+        <if test="text!=null and text!=''">
+            and (name like CONCAT('%',#{text},'%') or   source like CONCAT('%',#{text},'%')  or  content
+            like CONCAT('%',#{text},'%'))
+        </if>
+        order by id desc
+    </select>
+
+    <select id="initialList"   resultType="org.jeecg.modules.system.entity.SysInformation">
+        <if test="text!=null and text!=''">
+        select * from sys_information where status=1
+        and (name like CONCAT('%',#{text},'%') or   source like CONCAT('%',#{text},'%')  or  content
+        like CONCAT('%',#{text},'%'))
+       </if>
+        <if test="text==null || text==''">
+            select * from sys_information where id=-1
+        </if>
+        order by id desc
+    </select>
+</mapper>

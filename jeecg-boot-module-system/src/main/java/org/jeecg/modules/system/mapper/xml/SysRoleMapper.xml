@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jeecg.modules.system.mapper.SysRoleMapper">
+
+    <select id="SysListInfo" resultType="org.jeecg.modules.system.entity.SysRole">
+        select * from sys_role  where role_code not in ("zj","qy","grsb","zlwws_gr","zlwws_qy","zlwws_zj")
+    </select>
+    <select id="queryallUser" resultType="org.jeecg.modules.system.entity.SysRole">
+        select * from sys_role  where role_code not in ("zlwws_gr","zlwws_qy","zlwws_zj")
+    </select>
+
+
+</mapper>

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jeecg.modules.system.mapper.SysUserCompanyPatentMapper">
+
+    <select id="countByUserIdAndSort" resultType="integer">
+        SELECT count(1) FROM sys_user_company_patent WHERE user_id=#{userId}
+        <if test="sort!=null and sort!=''">
+            and
+            sort=#{sort}
+        </if>
+    </select>
+
+    <select id="yearList" resultType="integer">
+        SELECT year(patent_time) time from sys_user_company_patent GROUP BY year(patent_time)
+    </select>
+
+    <select id="userList" resultType="map">
+        select id,realname FROM sys_user WHERE user_type=2
+    </select>
+
+    <select id="censusCount" resultType="integer">
+        select count(*) as count FROM sys_user_company_patent WHERE
+         year(patent_time)=#{year}
+         <if test="sort!=null and sort!=''">
+             AND sort=#{sort}
+         </if>
+        <if test="level!=null and level!=''">
+            AND level=#{level}
+        </if>
+        <if test="prize!=null and prize!=''">
+            AND prize=#{prize}
+        </if>
+        <if test="user_id!=null and user_id!=''">
+            AND user_id=#{user_id}
+        </if>
+    </select>
+
+    <select id="pageListNew" resultType="org.jeecg.modules.system.entity.SysUserCompanyPatent">
+        select * from sys_user_company_patent
+        where 1=1
+        <if test="name!=null and name!=''">
+            AND name LIKE concat('%',#{name},'%')
+        </if>
+        <if test="sort!=null and sort!=''">
+            AND sort = #{sort}
+        </if>
+        <if test="level!=null and level!=''">
+            AND level = #{level}
+        </if>
+        <if test="prize!=null and prize!=''">
+            AND prize = #{prize}
+        </if>
+        <if test="startTime!=null ">
+            and patent_time &gt;=  #{startTime}
+        </if>
+        <if test="endTime!=null ">
+            and patent_time &lt;=  #{endTime}
+        </if>
+        <if test="userId!=null and userId!=''">
+            AND userId = #{userId}
+        </if>
+    </select>
+</mapper>

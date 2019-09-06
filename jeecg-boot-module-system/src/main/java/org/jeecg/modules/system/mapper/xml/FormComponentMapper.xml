@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jeecg.modules.system.mapper.FormComponentMapper">
+    <select id="listByForm" resultType="map">
+        SELECT
+               id,form_id,label,type,selection_option,is_required,regular,index_number,max_length,placeholder
+        FROM form_component
+        WHERE del_flag=1 AND form_id=#{formId}
+        ORDER BY index_number ASC
+    </select>
+</mapper>

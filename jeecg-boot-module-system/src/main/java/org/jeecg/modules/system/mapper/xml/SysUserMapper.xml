@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jeecg.modules.system.mapper.SysUserMapper">
+
+	<!-- 根据用户名查询 -->
+	<select id="getUserByName" resultType="org.jeecg.modules.system.entity.SysUser">
+		select * from  sys_user  where username = #{username} and del_flag = '0'
+	</select>
+
+	<select id="getAllUserInfo" resultType="org.jeecg.modules.system.entity.SysUser">
+		select * from  sys_user  where status = 1  and  del_flag="0"
+	</select>
+	<!-- 根据部门Id查询 -->
+	<select id="getUserByDepId" resultType="org.jeecg.modules.system.entity.SysUser">
+		select * from sys_user where del_flag = '0' and id in (select user_id from sys_user_depart where dep_id=#{departId})
+		<if test="username!=null and username!=''">
+			and username = #{username}
+		</if>
+	</select>
+
+	<!-- 根据角色Id查询 -->
+	<select id="getUserByRoleId" resultType="org.jeecg.modules.system.entity.SysUser">
+		select * from sys_user where del_flag = '0' and id in (select user_id from sys_user_role where role_id=#{roleId})
+		<if test="username!=null and username!=''">
+			and username = #{username}
+		</if>
+	</select>
+
+	<!--  修改用户部门code -->
+	<update id="updateUserDepart">
+		UPDATE sys_user SET org_code = #{orgCode} where username = #{username}
+	</update>
+	
+
+	<select id="queryPageSysList" resultType="Map">
+		select u.id,u.username,u.realname,u.password,u.sex,u.salt,u.email,u.phone,u.status,u.del_flag,u.create_by,u.update_time,u.update_by,u.user_type,r.role_name,
+		       DATE_FORMAT(u.birthday,'%Y-%m-%d %H:%i:%s') AS birthday, DATE_FORMAT(u.create_time,'%Y-%m-%d %H:%i:%s') AS create_time,
+		       (case u.sex when 1 then '男'  else '女'     end   ) as sexName, (case u.status when 3 then '资料不全' when 4 then '待审核' when 1 then '正常' when 2 then '禁用'   else '注销'     end   ) as userStatus
+		from sys_user u left join sys_user_role  ur on u.id=ur.user_id left join sys_role r on r.id=ur.role_id where u.user_type =0     and u.del_flag=0
+		<if test="username!=null and username!=''">
+			and u.username = #{username}
+		</if>
+		<if test="name!=null and name!=''">
+			and u.realname	LIKE CONCAT('%',#{name},'%')
+		</if>
+		<if test="selectedRole!=null and selectedRole!=''">
+			and r.id = #{selectedRole}
+		</if>
+		order by u.create_time desc
+	</select>
+
+
+	<select id="getUserInfoList" resultType="Map">
+		select u.id,u.username,u.realname,u.email,u.phone,u.status,u.del_flag,u.create_by,u.update_time,u.update_by,u.user_type,r.role_name,
+		DATE_FORMAT(u.create_time,'%Y-%m-%d %H:%i:%s') AS create_time
+		from sys_user u left join sys_user_role  ur on u.id=ur.user_id
+		left join sys_role r on r.id=ur.role_id
+		left join sys_user_company_data sd on u.id=sd.user_id
+		where   u.status=1  and u.del_flag=0
+		<if test="username!=null and username!=''">
+			and u.username = #{username}
+		</if>
+		<if test="name!=null and name!=''">
+			and u.realname	LIKE CONCAT('%',#{name},'%')
+		</if>
+		<if test="selectedRole!=null and selectedRole!=''">
+			and r.id = #{selectedRole}
+		</if>
+		<if test="list!=null and list.size > 0">
+			and
+			<foreach collection="list" item="item" index="index" open="(" separator="," close=")">
+				${item.field}   ${item.rule}  ${item.val}
+			</foreach>
+		</if>
+		order by u.create_time desc
+	</select>
+
+	<select id="pageCustomer" resultType="org.jeecg.modules.system.vo.SysUserVo">
+		SELECT su.*,if(sb.user_id is null,"否","是") AS black  FROM sys_user su
+		LEFT JOIN sys_blacklist sb ON su.id=sb.user_id
+		LEFT JOIN sys_user_company_data sd on su.id=sd.user_id
+		WHERE su.del_flag='0'
+		<if test="account!=null and account!=''" >
+			AND su.username LIKE CONCAT('%',#{account},'%')
+		</if>
+		<if test="state!=null">
+			AND su.status = #{state}
+		</if>
+		<if test="realName!=null and realName!=''">
+			AND su.realname LIKE CONCAT('%',#{realName},'%')
+		</if>
+		<if test="userType!=null">
+			AND su.user_type=#{userType}
+		</if>
+		<if test="userType==null">
+			AND (su.user_type=1 OR su.user_type=2)
+		</if>
+		<if test="list!=null and list.size > 0">
+			AND
+			<foreach collection="list" item="item" index="index" open="(" separator="," close=")">
+				${item.field}   ${item.rule}  ${item.val}
+			</foreach>
+		</if>
+		order by su.create_time desc
+	</select>
+
+	<select id="getCompanyDetails" resultType="map">
+		SELECT
+			u.id,u.username,u.realname,u.password,u.user_type,u.email,u.phone,u.status,u.create_time,
+			s.user_card,s.user_name,s.user_post,s.user_title,s.user_telephone,s.company_name,s.social_credit_code,
+			s.competent_department,s.unit_nature,s.incorporation_place,s.company_address_province,s.company_address_city,
+			s.company_detail_address,s.company_telephone,s.company_fax,s.company_email,s.company_postal_code,s.company_bank_account,
+			s.company_bank_code,s.bank_name,s.registered_capital,s.capital_type,s.credit_rating,s.company_create_time,s.business_scope,
+			s.legal_person,s.document_type,s.document_code,s.legal_phone,s.legal_telephone,s.legal_email,s.legal_education,
+			s.legal_academic_degree,s.legal_post,s.legal_sex,s.legal_birth_date,s.legal_title,s.create_time,s.user_sex,
+		    s.iso_time,s.violate,s.financing_amount,s.financing_time,s.government_aid,s.national_advantage,s.provincial_advantage,
+		    s.city_advantage,s.zz_science,s.record_number,s.provincial_key_time,s.regulatory_enterprises,s.organization_of_scientists,s.company_industry
+		FROM sys_user u
+				 LEFT JOIN sys_user_company_data s ON u.id=s.user_id
+		WHERE u.user_type=2 AND u.id=#{id}
+	</select>
+
+	<select id="getCompanyFiles" resultType="map">
+		SELECT * FROM public_upload_annex a left join sys_user_company_data s on s.id=a.key_id  WHERE a.annex_type=3 AND s.user_id=#{id}
+	</select>
+
+	<select id="getPersonalDetails" resultType="map">
+		SELECT
+			u.id,u.username,u.realname,u.password,u.user_type,u.email,u.phone,u.status,u.create_time,
+			p.personal_sex,p.identity_card_number as user_card,p.post as user_post,p.professional_titles as user_title,p.company_name,p.post,p.professional_titles
+		FROM sys_user u
+				 LEFT JOIN sys_user_personal_data p ON u.id=p.user_id
+		WHERE u.user_type=1 AND u.id=#{id}
+
+	</select>
+
+	<select id="getPersonalFiles" resultType="map">
+		SELECT file_name,file_path FROM public_upload_annex  WHERE annex_type=1 AND key_id=#{id}
+	</select>
+
+	<select id="getUserNameByDptId" resultType="java.lang.String" >
+		select u.username from sys_user u
+		LEFT JOIN sys_user_depart ud ON ud.user_id=u.id
+		LEFT JOIN sys_user_role ur ON ur.user_id=u.id
+		LEFT JOIN sys_role r ON r.id=ur.role_id
+		where ud.dep_id=#{dptId} and r.role_name like '科长%'
+	</select>
+
+	<select id="getUserByPhone"  resultType="org.jeecg.modules.system.entity.SysUser">
+		select * from  sys_user  where phone = #{phone} and del_flag = '0'
+	</select>
+
+	<!-- 根据邮箱查询用户信息 -->
+	<select id="getUserByEmail" resultType="org.jeecg.modules.system.entity.SysUser">
+	select * from  sys_user  where email = #{email} and del_flag = '0'
+	</select>
+
+	<select id="getAdminList" resultType="org.jeecg.modules.system.entity.SysUser">
+		SELECT * FROM sys_user u
+		LEFT JOIN sys_user_depart ud
+		on ud.user_id=u.id
+		where ud.user_id is NULL
+		AND ud.dep_id is NULL
+		AND u.user_type=0
+		AND u.del_flag=0
+		AND u.status=1
+		<if test="username!=null and username!=''">
+			AND u.username like CONCAT('%',#{username},'%')
+		</if>
+	</select>
+
+
+	<select id="getPageList" resultType="org.jeecg.modules.system.entity.SysUser">
+		SELECT u.id as id, u.username as username, u.user_type as user_type,u.status as status,
+		u.remarks as remarks,u.expert_id as expertId,
+		CASE WHEN g.group_name is null THEN '未分组'
+		WHEN g.group_name = '' THEN '未分组'
+		ELSE g.group_name END as salt
+		FROM sys_user u
+		LEFT JOIN expert_user_group ug on ug.user_id=u.id
+		LEFT JOIN expert_group g on ug.group_id=g.id
+		where u.user_type=3
+		AND u.del_flag=0
+		<if test="username!=null and username!=''">
+			AND u.username like CONCAT('%',#{username},'%')
+		</if>
+	</select>
+	<!--专家一键授权-->
+	<update id="doExpertEmpower">
+		UPDATE sys_user SET status=4 WHERE status=6 AND del_flag='0' AND user_type=3
+	</update>
+
+	<select id="keyList" resultType="org.jeecg.modules.system.vo.SysUserKeyVo">
+		SELECT user_name,provincial_key_time FROM sys_user_company_data WHERE provincial_key_time is not NULL
+	</select>
+
+	<select id="getContentInfoByParams" resultType="java.util.Map">
+		select * FROM sys_user_company_data WHERE user_id=#{applyId}
+		<foreach collection="list" item="item" index="index" open="(" separator="," close=")">
+			and item.field   item.byValue  item.val
+		</foreach>
+	</select>
+</mapper>
